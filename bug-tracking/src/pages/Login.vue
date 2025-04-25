@@ -51,7 +51,7 @@ const handleLogin = async () => {
   })
 
   if (success) {
-    router.push('/dashboard')
+    router.push('/')
   } else {
     // TODO: Show error message
     alert('Login failed. Please check your credentials.')

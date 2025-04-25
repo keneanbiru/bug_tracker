@@ -1,11 +1,17 @@
 import { defineStore } from "pinia";
 
 export const useAuthStore = defineStore("auth", {
-  state: () => ({
-    user: null,
-    token: localStorage.getItem("token") || null,
-    role: localStorage.getItem("role") || null,
-  }),
+  state: () => {
+    // Initialize user from localStorage if available
+    const storedUser = localStorage.getItem("user");
+    const user = storedUser ? JSON.parse(storedUser) : null;
+    
+    return {
+      user: user,
+      token: localStorage.getItem("token") || null,
+      role: localStorage.getItem("role") || null,
+    };
+  },
 
   getters: {
     isAuthenticated: (state) => !!state.token,
@@ -42,8 +48,10 @@ export const useAuthStore = defineStore("auth", {
         this.user = data.user;
         this.role = data.user.role;
 
+        // Store user data in localStorage
         localStorage.setItem("token", data.token);
         localStorage.setItem("role", data.user.role);
+        localStorage.setItem("user", JSON.stringify(data.user));
 
         return true;
       } catch (error) {
@@ -61,22 +69,28 @@ export const useAuthStore = defineStore("auth", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              "Accept": "application/json"
             },
             body: JSON.stringify(userData),
           }
         );
 
+        console.log("Registration response status:", response.status);
+        const responseText = await response.text();
+        console.log("Registration response body:", responseText);
+
         if (!response.ok) {
-          const errorData = await response.json().catch(() => null);
-          console.error("Registration failed:", {
-            status: response.status,
-            statusText: response.statusText,
-            error: errorData,
-          });
-          throw new Error(errorData?.message || "Registration failed");
+          let errorMessage = "Registration failed";
+          try {
+            const errorData = JSON.parse(responseText);
+            errorMessage = errorData.message || errorData.error || errorMessage;
+          } catch (e) {
+            console.error("Error parsing error response:", e);
+          }
+          throw new Error(errorMessage);
         }
 
-        const data = await response.json();
+        const data = JSON.parse(responseText);
         console.log("Registration successful:", data);
         return { success: true, data };
       } catch (error) {
@@ -91,6 +105,6 @@ export const useAuthStore = defineStore("auth", {
       this.role = null;
       localStorage.removeItem("token");
       localStorage.removeItem("role");
-    },
+    }
   },
 });

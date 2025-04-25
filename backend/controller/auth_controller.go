@@ -74,3 +74,13 @@ func (c *AuthController) Login(ctx *gin.Context) {
 		User:  *user,
 	})
 }
+
+func (c *AuthController) GetDevelopers(ctx *gin.Context) {
+	developers, err := c.authUseCase.GetDevelopers(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch developers"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, developers)
+}

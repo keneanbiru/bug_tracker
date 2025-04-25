@@ -1,86 +1,76 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "../stores/auth";
 
+// Import route components
+import Dashboard from "../pages/Dashboard.vue";
+import Login from "../pages/Login.vue";
+import Register from "../pages/Register.vue";
+import BugList from "../pages/BugList.vue";
+import ReportBug from "../pages/ReportBug.vue";
+import BugDetails from "../pages/BugDetails.vue";
+import NotFound from "../pages/NotFound.vue";
+
 const routes = [
   {
     path: "/",
-    redirect: "/dashboard",
-  },
-  {
-    path: "/dashboard",
-    name: "Dashboard",
-    component: () => import("../pages/Dashboard.vue"),
-    meta: { requiresAuth: true },
-  },
-  {
-    path: "/bugs",
-    name: "BugList",
-    component: () => import("../pages/BugList.vue"),
-    meta: { requiresAuth: true },
-  },
-  {
-    path: "/bugs/new",
-    name: "ReportBug",
-    component: () => import("../pages/ReportBug.vue"),
-    meta: {
-      requiresAuth: true,
-      roles: ["developer", "manager", "admin"],
-    },
-  },
-  {
-    path: "/bugs/:id",
-    name: "BugDetails",
-    component: () => import("../pages/BugDetails.vue"),
-    meta: { requiresAuth: true },
+    name: "Home",
+    component: Dashboard,
+    meta: { requiresAuth: true }
   },
   {
     path: "/login",
     name: "Login",
-    component: () => import("../pages/Login.vue"),
-    meta: { requiresAuth: false },
+    component: Login,
+    meta: { requiresGuest: true }
   },
   {
     path: "/register",
     name: "Register",
-    component: () => import("../pages/Register.vue"),
-    meta: { requiresAuth: false },
+    component: Register,
+    meta: { requiresGuest: true }
+  },
+  {
+    path: "/bugs",
+    name: "BugList",
+    component: BugList,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: "/report",
+    name: "ReportBug",
+    component: ReportBug,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: "/bugs/:id",
+    name: "BugDetail",
+    component: BugDetails,
+    meta: { requiresAuth: true }
   },
   {
     path: "/:pathMatch(.*)*",
     name: "NotFound",
-    component: () => import("../pages/NotFound.vue"),
-  },
+    component: NotFound
+  }
 ];
 
 const router = createRouter({
   history: createWebHistory(),
-  routes,
+  routes
 });
 
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
-  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
-  const allowedRoles = to.meta.roles;
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
+  const requiresGuest = to.matched.some(record => record.meta.requiresGuest);
 
-  // If route requires auth and user is not authenticated
   if (requiresAuth && !authStore.isAuthenticated) {
     next("/login");
-    return;
+  } else if (requiresGuest && authStore.isAuthenticated) {
+    next("/");
+  } else {
+    next();
   }
-
-  // If route has role restrictions
-  if (allowedRoles && !allowedRoles.includes(authStore.role)) {
-    next("/dashboard");
-    return;
-  }
-
-  // If user is authenticated and tries to access login/register
-  if (!requiresAuth && authStore.isAuthenticated) {
-    next("/dashboard");
-    return;
-  }
-
-  next();
 });
 
 export default router;

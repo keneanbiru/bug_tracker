@@ -1,28 +1,38 @@
 <template>
   <div class="app-container">
-    <!-- Navigation Bar (Simple) -->
-    <nav class="nav">
-      <div class="container">
-        <router-link to="/" class="nav-brand">Bug Tracker</router-link>
-        <div class="nav-links">
-          <router-link to="/" class="nav-link">Dashboard</router-link>
-          <router-link to="/bugs" class="nav-link">Bug List</router-link>
-          <router-link to="/report" class="nav-link">Report Bug</router-link>
-          <router-link to="/login" class="nav-link">Login</router-link>
-        </div>
-      </div>
-    </nav>
-
-    <!-- Main Content -->
-    <main class="main-content">
-      <router-view />
-    </main>
+    <div v-if="error" class="error-message">
+      {{ error }}
+    </div>
+    <router-view v-slot="{ Component }">
+      <component :is="Component" />
+    </router-view>
   </div>
 </template>
 
 <script>
+import { onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
+
 export default {
-  name: 'App'
+  name: 'App',
+  setup() {
+    const error = ref('');
+    const router = useRouter();
+
+    onMounted(() => {
+      console.log('App component mounted');
+      console.log('Current route:', router.currentRoute.value);
+      
+      // Check if we're on the home route
+      if (router.currentRoute.value.path === '/') {
+        console.log('On home route');
+      }
+    });
+
+    return {
+      error
+    };
+  }
 };
 </script>
 
@@ -48,39 +58,14 @@ body {
   flex-direction: column;
 }
 
-/* Navigation */
-.nav {
-  background-color: #3498db;
-  padding: 1rem 0;
-}
-
-.nav .container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.nav-brand {
-  color: white;
-  font-size: 1.25rem;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.nav-links {
-  display: flex;
-  gap: 1rem;
-}
-
-.nav-link {
-  color: white;
-  text-decoration: none;
-  padding: 0.5rem 1rem;
+/* Error message */
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 1rem;
+  margin: 1rem;
   border-radius: 0.25rem;
-}
-
-.nav-link:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid #f5c6cb;
 }
 
 /* Main content */
@@ -149,7 +134,7 @@ body {
   background: white;
   border-radius: 0.5rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 1rem;
-  margin-bottom: 1rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 </style>

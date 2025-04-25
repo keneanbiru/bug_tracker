@@ -10,11 +10,15 @@ import (
 
 type Router struct {
 	authController *controller.AuthController
+	bugController  *controller.BugController
+	authUseCase    *usecase.AuthUseCase
 }
 
-func NewRouter(authController *controller.AuthController) *Router {
+func NewRouter(authController *controller.AuthController, bugController *controller.BugController, authUseCase *usecase.AuthUseCase) *Router {
 	return &Router{
 		authController: authController,
+		bugController:  bugController,
+		authUseCase:    authUseCase,
 	}
 }
 
@@ -35,6 +39,20 @@ func (r *Router) Setup() *gin.Engine {
 	{
 		auth.POST("/register", r.authController.Register)
 		auth.POST("/login", r.authController.Login)
+		auth.GET("/developers", r.authController.GetDevelopers)
+	}
+
+	// Bug routes (protected)
+	bugs := router.Group("/api/bugs")
+	bugs.Use(AuthMiddleware(r.authUseCase))
+	{
+		bugs.POST("", r.bugController.CreateBug)
+		bugs.GET("", r.bugController.GetBugs)
+		bugs.GET("/:id", r.bugController.GetBugByID)
+		bugs.PUT("/:id", r.bugController.UpdateBug)
+		bugs.DELETE("/:id", r.bugController.DeleteBug)
+		bugs.PATCH("/:id/status", r.bugController.UpdateBugStatus)
+		bugs.POST("/:id/assign", r.bugController.AssignBug)
 	}
 
 	return router

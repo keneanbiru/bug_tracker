@@ -140,3 +140,17 @@ func (uc *AuthUseCase) ValidateToken(tokenString string) (*models.User, error) {
 
 	return user, nil
 }
+
+func (uc *AuthUseCase) GetDevelopers(ctx context.Context) ([]models.UserResponse, error) {
+	developers, err := uc.userRepo.FindByRole(ctx, "developer")
+	if err != nil {
+		return nil, err
+	}
+
+	responses := make([]models.UserResponse, len(developers))
+	for i, dev := range developers {
+		responses[i] = dev.ToResponse()
+	}
+
+	return responses, nil
+}

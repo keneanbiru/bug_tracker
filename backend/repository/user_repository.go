@@ -87,3 +87,20 @@ func (r *UserRepository) Delete(ctx context.Context, id primitive.ObjectID) erro
 	_, err := collection.DeleteOne(ctx, bson.M{"_id": id})
 	return err
 }
+
+func (r *UserRepository) FindByRole(ctx context.Context, role string) ([]*models.User, error) {
+	collection := r.db.Collection("users")
+
+	cursor, err := collection.Find(ctx, bson.M{"role": role})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var users []*models.User
+	if err = cursor.All(ctx, &users); err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}

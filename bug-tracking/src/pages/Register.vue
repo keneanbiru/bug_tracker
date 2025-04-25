@@ -13,7 +13,9 @@
             id="name" 
             v-model="name" 
             required 
-            placeholder="Enter your full name"
+            minlength="2"
+            placeholder="Enter your full name (min 2 characters)"
+            :disabled="isLoading"
           >
         </div>
         <div class="form-group">
@@ -24,6 +26,7 @@
             v-model="email" 
             required 
             placeholder="Enter your email"
+            :disabled="isLoading"
           >
         </div>
         <div class="form-group">
@@ -33,19 +36,23 @@
             id="password" 
             v-model="password" 
             required 
-            placeholder="Enter your password"
+            minlength="6"
+            placeholder="Enter your password (min 6 characters)"
+            :disabled="isLoading"
           >
         </div>
         <div class="form-group">
           <label for="role">Role</label>
-          <select id="role" v-model="role" required>
+          <select id="role" v-model="role" required :disabled="isLoading">
             <option value="">Select a role</option>
             <option value="developer">Developer</option>
             <option value="manager">Manager</option>
             <option value="admin">Admin</option>
           </select>
         </div>
-        <button type="submit" class="register-button">Register</button>
+        <button type="submit" class="register-button" :disabled="isLoading">
+          {{ isLoading ? 'Registering...' : 'Register' }}
+        </button>
         <p class="login-link">
           Already have an account? 
           <router-link to="/login">Login here</router-link>
@@ -68,11 +75,39 @@ const email = ref('')
 const password = ref('')
 const role = ref('')
 const error = ref('')
+const isLoading = ref(false)
+
+const validateEmail = (email) => {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return re.test(email)
+}
 
 const handleRegister = async () => {
   error.value = '' // Clear any previous errors
+  isLoading.value = true
   
   try {
+    // Validate inputs
+    if (!name.value || !email.value || !password.value || !role.value) {
+      throw new Error('All fields are required')
+    }
+
+    if (name.value.length < 2) {
+      throw new Error('Name must be at least 2 characters long')
+    }
+
+    if (!validateEmail(email.value)) {
+      throw new Error('Please enter a valid email address')
+    }
+
+    if (password.value.length < 6) {
+      throw new Error('Password must be at least 6 characters long')
+    }
+
+    if (!['developer', 'manager', 'admin'].includes(role.value)) {
+      throw new Error('Please select a valid role')
+    }
+
     const result = await authStore.register({
       name: name.value,
       email: email.value,
@@ -86,8 +121,10 @@ const handleRegister = async () => {
       error.value = result.error || 'Registration failed. Please try again.'
     }
   } catch (err) {
-    error.value = 'An unexpected error occurred. Please try again.'
+    error.value = err.message || 'An unexpected error occurred. Please try again.'
     console.error('Registration error:', err)
+  } finally {
+    isLoading.value = false
   }
 }
 </script>

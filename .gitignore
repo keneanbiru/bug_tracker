@@ -42,3 +42,4 @@ yarn-error.log*
 
 # Go workspace file
 go.work
+.qodo

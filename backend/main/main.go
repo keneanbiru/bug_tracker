@@ -54,15 +54,18 @@ func main() {
 
 	// Initialize repositories
 	userRepo := repository.NewUserRepository(db)
+	bugRepo := repository.NewBugRepository(db)
 
 	// Initialize use cases
 	authUseCase := usecase.NewAuthUseCase(userRepo, jwtSecret)
+	bugUseCase := usecase.NewBugUseCase(bugRepo, userRepo)
 
 	// Initialize controllers
 	authController := controller.NewAuthController(authUseCase)
+	bugController := controller.NewBugController(bugUseCase)
 
 	// Initialize router
-	r := router.NewRouter(authController)
+	r := router.NewRouter(authController, bugController, authUseCase)
 	router := r.Setup()
 
 	// Start server

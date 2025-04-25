@@ -2,12 +2,12 @@
   <div class="layout">
     <header class="header">
       <div class="logo">
-        <router-link to="/dashboard">Bug Tracker</router-link>
+        <router-link to="/">Bug Tracker</router-link>
       </div>
       <nav class="nav">
-        <router-link to="/dashboard" class="nav-link">Dashboard</router-link>
+        <router-link to="/" class="nav-link">Dashboard</router-link>
         <router-link to="/bugs" class="nav-link">Bugs</router-link>
-        <router-link v-if="authStore.isAdmin" to="/bugs/new" class="nav-link">Report Bug</router-link>
+        <router-link v-if="authStore.canReportBugs" to="/report" class="nav-link">Report Bug</router-link>
       </nav>
       <div class="user-menu">
         <span class="user-role">{{ authStore.currentUser?.name }} ({{ authStore.role }})</span>
