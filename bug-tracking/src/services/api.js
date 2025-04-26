@@ -1,7 +1,20 @@
 import axios from 'axios';
 
+// Get the base URL from environment or use default
+const getBaseURL = () => {
+    if (process.env.NODE_ENV === 'test') {
+        return 'http://localhost:8080/api';
+    }
+    try {
+        // @ts-ignore
+        return window.__VITE_API_URL__ || 'http://localhost:8080/api';
+    } catch {
+        return 'http://localhost:8080/api';
+    }
+};
+
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api',
+    baseURL: getBaseURL(),
 });
 
 // Add request interceptor to add auth token

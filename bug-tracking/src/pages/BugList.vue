@@ -128,6 +128,7 @@
               v-if="authStore.canAssignBugs && !bug.assigned_to"
               @click="assignBug(bug.id)"
               class="btn btn-primary"
+              data-test="assign-button"
             >
               Assign
             </button>
@@ -135,6 +136,7 @@
               v-if="authStore.canEditBugStatus && (bug.assigned_to?.id === authStore.currentUser?.id || authStore.isManager || authStore.isAdmin)"
               @click="updateBugStatus(bug.id)"
               class="btn btn-primary"
+              data-test="update-status-button"
             >
               Update Status
             </button>

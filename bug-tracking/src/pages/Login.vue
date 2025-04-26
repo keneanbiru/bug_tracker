@@ -45,6 +45,11 @@ const email = ref('')
 const password = ref('')
 
 const handleLogin = async () => {
+  // Validate required fields
+  if (!email.value || !password.value) {
+    return
+  }
+
   const success = await authStore.login({
     email: email.value,
     password: password.value

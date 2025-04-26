@@ -87,36 +87,17 @@ export const useBugStore = defineStore('bug', {
                     status: mappedStatus
                 };
                 
-                // Use a direct fetch call to update the bug
-                const token = localStorage.getItem('token');
-                const response = await fetch(`http://localhost:8080/api/bugs/${bugId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(updatedBug)
-                });
-                
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || 'Failed to update bug status');
-                }
-                
-                const data = await response.json();
-                console.log('Update response:', data);
+                const response = await api.put(`/bugs/${bugId}`, updatedBug);
                 
                 // Update the bug in the store
                 const index = this.bugs.findIndex(b => b.id === bugId);
                 if (index !== -1) {
-                    this.bugs[index] = data;
-                    console.log('Bug updated in store:', this.bugs[index]);
+                    this.bugs[index] = response.data;
                 }
                 
-                return data;
+                return response.data;
             } catch (error) {
-                console.error('Error updating bug status:', error);
-                this.error = error.message || 'Failed to update bug status';
+                this.error = error.response?.data?.error || 'Failed to update bug status';
                 throw error;
             }
         },
