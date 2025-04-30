@@ -50,31 +50,12 @@
               required
             >
               <option value="">Select priority level</option>
-              <option value="LOW">Low</option>
-              <option value="MEDIUM">Medium</option>
-              <option value="HIGH">High</option>
-              <option value="CRITICAL">Critical</option>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="critical">Critical</option>
             </select>
             <div class="error-message" v-if="errors.priority">{{ errors.priority }}</div>
-          </div>
-
-          <div class="form-group">
-            <label for="category">Category</label>
-            <select
-              id="category"
-              v-model="bugData.category"
-              class="form-control"
-              :class="{ 'is-invalid': errors.category }"
-              required
-            >
-              <option value="">Select a category</option>
-              <option value="UI">User Interface</option>
-              <option value="FUNCTIONALITY">Functionality</option>
-              <option value="PERFORMANCE">Performance</option>
-              <option value="SECURITY">Security</option>
-              <option value="OTHER">Other</option>
-            </select>
-            <div class="error-message" v-if="errors.category">{{ errors.category }}</div>
           </div>
 
           <div class="form-actions">
@@ -105,15 +86,13 @@ const isSubmitting = ref(false);
 const bugData = reactive({
   title: '',
   description: '',
-  priority: '',
-  category: ''
+  priority: ''
 });
 
 const errors = reactive({
   title: '',
   description: '',
-  priority: '',
-  category: ''
+  priority: ''
 });
 
 const validateForm = () => {
@@ -121,7 +100,6 @@ const validateForm = () => {
   errors.title = '';
   errors.description = '';
   errors.priority = '';
-  errors.category = '';
 
   if (!bugData.title.trim()) {
     errors.title = 'Title is required';
@@ -144,11 +122,6 @@ const validateForm = () => {
     isValid = false;
   }
 
-  if (!bugData.category) {
-    errors.category = 'Category is required';
-    isValid = false;
-  }
-
   return isValid;
 };
 
@@ -156,7 +129,6 @@ const resetForm = () => {
   bugData.title = '';
   bugData.description = '';
   bugData.priority = '';
-  bugData.category = '';
   Object.keys(errors).forEach(key => errors[key] = '');
 };
 

@@ -63,8 +63,15 @@ export const useBugStore = defineStore('bug', {
             this.loading = true;
             this.error = null;
             try {
-                console.log('Reporting bug:', bugData);
-                const response = await api.post('/bugs', bugData);
+                // Format the data according to backend expectations
+                const formattedData = {
+                    title: bugData.title,
+                    description: bugData.description,
+                    priority: bugData.priority.toLowerCase() // Convert to lowercase to match backend expectations
+                };
+
+                console.log('Reporting bug:', formattedData);
+                const response = await api.post('/bugs', formattedData);
                 console.log('Bug report response:', response.data);
                 // Add the new bug to the list
                 this.bugs.push(response.data);
