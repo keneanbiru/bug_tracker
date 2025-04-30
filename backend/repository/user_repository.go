@@ -12,6 +12,15 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+type UserRepositoryInterface interface {
+	Create(ctx context.Context, user *models.User) error
+	FindByEmail(ctx context.Context, email string) (*models.User, error)
+	FindByID(ctx context.Context, id primitive.ObjectID) (*models.User, error)
+	Update(ctx context.Context, user *models.User) error
+	Delete(ctx context.Context, id primitive.ObjectID) error
+	FindByRole(ctx context.Context, role string) ([]*models.User, error)
+}
+
 type UserRepository struct {
 	db *mongo.Database
 }
@@ -22,6 +31,15 @@ func NewUserRepository(db *mongo.Database) *UserRepository {
 
 func (r *UserRepository) Create(ctx context.Context, user *models.User) error {
 	collection := r.db.Collection("users")
+
+	// Check for existing user with the same email
+	existingUser, err := r.FindByEmail(ctx, user.Email)
+	if err != nil {
+		return err
+	}
+	if existingUser != nil {
+		return mongo.ErrNoDocuments // Return an error to indicate duplicate email
+	}
 
 	// Set timestamps
 	user.CreatedAt = time.Now()

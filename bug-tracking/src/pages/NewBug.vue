@@ -1,6 +1,9 @@
 <template>
   <div class="new-bug-container">
     <h1>Report New Bug</h1>
+    <div v-if="bugStore.error" class="error-message">
+      {{ bugStore.error }}
+    </div>
     <form @submit.prevent="handleSubmit" class="bug-form">
       <div class="form-group">
         <label for="title">Title</label>
@@ -57,9 +60,11 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { useBugStore } from '../stores/bug'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const bugStore = useBugStore()
 
 // Mock data - replace with API call
 const developers = ref([
@@ -74,7 +79,6 @@ const assignee = ref('')
 
 const handleSubmit = async () => {
   try {
-    // TODO: Replace with actual API call
     const bugData = {
       title: title.value,
       description: description.value,
@@ -84,14 +88,10 @@ const handleSubmit = async () => {
       status: 'open'
     }
 
-    console.log('Submitting bug:', bugData)
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
+    await bugStore.createBug(bugData)
     router.push('/bugs')
-  } catch (error) {
-    console.error('Error submitting bug:', error)
-    // TODO: Show error message to user
+  } catch (err) {
+    console.error('Error submitting bug:', err)
   }
 }
 </script>
@@ -174,5 +174,14 @@ const handleSubmit = async () => {
 
 .submit-button:hover {
   background-color: #45a049;
+}
+
+.error-message {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  text-align: center;
 }
 </style> 

@@ -10,6 +10,17 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+type BugRepositoryInterface interface {
+	Create(ctx context.Context, bug *models.Bug) error
+	FindByID(ctx context.Context, id primitive.ObjectID) (*models.Bug, error)
+	FindAll(ctx context.Context) ([]*models.Bug, error)
+	FindByAssignee(ctx context.Context, assigneeID primitive.ObjectID) ([]*models.Bug, error)
+	UpdateStatus(ctx context.Context, id primitive.ObjectID, status string) error
+	AssignToDeveloper(ctx context.Context, bugID, developerID primitive.ObjectID) error
+	Update(ctx context.Context, bug *models.Bug) error
+	Delete(ctx context.Context, id primitive.ObjectID) error
+}
+
 type BugRepository struct {
 	db *mongo.Database
 }

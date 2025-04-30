@@ -11,10 +11,10 @@ import (
 type Router struct {
 	authController *controller.AuthController
 	bugController  *controller.BugController
-	authUseCase    *usecase.AuthUseCase
+	authUseCase    usecase.AuthUseCaseInterface
 }
 
-func NewRouter(authController *controller.AuthController, bugController *controller.BugController, authUseCase *usecase.AuthUseCase) *Router {
+func NewRouter(authController *controller.AuthController, bugController *controller.BugController, authUseCase usecase.AuthUseCaseInterface) *Router {
 	return &Router{
 		authController: authController,
 		bugController:  bugController,
@@ -59,7 +59,7 @@ func (r *Router) Setup() *gin.Engine {
 }
 
 // AuthMiddleware validates the JWT token
-func AuthMiddleware(authUseCase *usecase.AuthUseCase) gin.HandlerFunc {
+func AuthMiddleware(authUseCase usecase.AuthUseCaseInterface) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := c.GetHeader("Authorization")
 		if token == "" {

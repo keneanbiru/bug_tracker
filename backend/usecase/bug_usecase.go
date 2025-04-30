@@ -14,12 +14,24 @@ var (
 	ErrUnauthorized = errors.New("unauthorized action")
 )
 
-type BugUseCase struct {
-	bugRepo  *repository.BugRepository
-	userRepo *repository.UserRepository
+// BugUseCaseInterface defines the interface for bug use cases
+type BugUseCaseInterface interface {
+	CreateBug(ctx context.Context, req models.CreateBugRequest, reporterID primitive.ObjectID) (*models.BugResponse, error)
+	GetBugByID(ctx context.Context, id primitive.ObjectID) (*models.BugResponse, error)
+	GetAllBugs(ctx context.Context) ([]*models.BugResponse, error)
+	GetBugsByDeveloper(ctx context.Context, developerID primitive.ObjectID) ([]*models.BugResponse, error)
+	UpdateBugStatus(ctx context.Context, bugID primitive.ObjectID, status string, userID primitive.ObjectID) (*models.BugResponse, error)
+	AssignBug(ctx context.Context, bugID, developerID primitive.ObjectID) (*models.BugResponse, error)
+	UpdateBug(ctx context.Context, id primitive.ObjectID, req models.UpdateBugRequest, user *models.User) (*models.BugResponse, error)
+	DeleteBug(ctx context.Context, id primitive.ObjectID) error
 }
 
-func NewBugUseCase(bugRepo *repository.BugRepository, userRepo *repository.UserRepository) *BugUseCase {
+type BugUseCase struct {
+	bugRepo  repository.BugRepositoryInterface
+	userRepo repository.UserRepositoryInterface
+}
+
+func NewBugUseCase(bugRepo repository.BugRepositoryInterface, userRepo repository.UserRepositoryInterface) *BugUseCase {
 	return &BugUseCase{
 		bugRepo:  bugRepo,
 		userRepo: userRepo,
@@ -101,25 +113,41 @@ func (uc *BugUseCase) UpdateBugStatus(ctx context.Context, bugID primitive.Objec
 }
 
 func (uc *BugUseCase) AssignBug(ctx context.Context, bugID, developerID primitive.ObjectID) (*models.BugResponse, error) {
-	// Verify developer exists and is a developer
-	developer, err := uc.userRepo.FindByID(ctx, developerID)
-	if err != nil {
-		return nil, err
-	}
-	if developer == nil || developer.Role != "developer" {
-		return nil, errors.New("invalid developer")
-	}
-
-	if err := uc.bugRepo.AssignToDeveloper(ctx, bugID, developerID); err != nil {
-		return nil, err
-	}
-
+	// Find the bug
 	bug, err := uc.bugRepo.FindByID(ctx, bugID)
 	if err != nil {
 		return nil, err
 	}
+	if bug == nil {
+		return nil, errors.New("bug not found")
+	}
 
-	return uc.getBugResponse(ctx, bug)
+	// Find the developer
+	developer, err := uc.userRepo.FindByID(ctx, developerID)
+	if err != nil {
+		return nil, err
+	}
+	if developer == nil {
+		return nil, errors.New("user not found")
+	}
+	if developer.Role != "developer" {
+		return nil, errors.New("invalid developer role")
+	}
+
+	// Assign the bug to the developer
+	bug.AssignedTo = developerID
+	err = uc.bugRepo.Update(ctx, bug)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the updated bug response
+	response, err := uc.GetBugByID(ctx, bugID)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }
 
 func (uc *BugUseCase) GetBugByID(ctx context.Context, id primitive.ObjectID) (*models.BugResponse, error) {

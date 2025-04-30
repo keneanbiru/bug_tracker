@@ -7,11 +7,11 @@
       </div>
       <div class="card">
         <h3 class="card-title">In Progress</h3>
-        <p class="card-number text-yellow">{{ bugStore.inProgressBugs.length }}</p>
+        <p class="card-number text-yellow">{{ inProgressCount }}</p>
       </div>
       <div class="card">
         <h3 class="card-title">Resolved</h3>
-        <p class="card-number text-green">{{ bugStore.resolvedBugs.length }}</p>
+        <p class="card-number text-green">{{ resolvedCount }}</p>
       </div>
     </div>
 
@@ -59,6 +59,14 @@ const recentBugs = computed(() => {
   return [...bugStore.bugs]
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
     .slice(0, 5);
+});
+
+const inProgressCount = computed(() => {
+  return bugStore.bugs.filter(bug => bug.status === 'in-progress').length;
+});
+
+const resolvedCount = computed(() => {
+  return bugStore.bugs.filter(bug => bug.status === 'resolved').length;
 });
 </script>
 

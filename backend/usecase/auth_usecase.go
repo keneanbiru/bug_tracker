@@ -12,6 +12,14 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+// AuthUseCaseInterface defines the interface for authentication operations
+type AuthUseCaseInterface interface {
+	Register(ctx context.Context, req models.RegisterRequest) (*models.UserResponse, error)
+	Login(ctx context.Context, req models.LoginRequest) (string, *models.UserResponse, error)
+	GetDevelopers(ctx context.Context) ([]models.UserResponse, error)
+	ValidateToken(tokenString string) (*models.User, error)
+}
+
 var (
 	ErrUserNotFound       = errors.New("user not found")
 	ErrInvalidPassword    = errors.New("invalid password")
@@ -19,11 +27,11 @@ var (
 )
 
 type AuthUseCase struct {
-	userRepo  *repository.UserRepository
+	userRepo  repository.UserRepositoryInterface
 	jwtSecret []byte
 }
 
-func NewAuthUseCase(userRepo *repository.UserRepository, jwtSecret string) *AuthUseCase {
+func NewAuthUseCase(userRepo repository.UserRepositoryInterface, jwtSecret string) *AuthUseCase {
 	return &AuthUseCase{
 		userRepo:  userRepo,
 		jwtSecret: []byte(jwtSecret),

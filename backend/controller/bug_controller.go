@@ -10,10 +10,10 @@ import (
 )
 
 type BugController struct {
-	bugUseCase *usecase.BugUseCase
+	bugUseCase usecase.BugUseCaseInterface
 }
 
-func NewBugController(bugUseCase *usecase.BugUseCase) *BugController {
+func NewBugController(bugUseCase usecase.BugUseCaseInterface) *BugController {
 	return &BugController{
 		bugUseCase: bugUseCase,
 	}
@@ -67,7 +67,7 @@ func (c *BugController) UpdateBugStatus(ctx *gin.Context) {
 	}
 
 	bugID, err := primitive.ObjectIDFromHex(ctx.Param("id"))
-	if err != nil {
+	if err != nil || bugID.IsZero() {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid bug ID"})
 		return
 	}
@@ -98,7 +98,7 @@ func (c *BugController) AssignBug(ctx *gin.Context) {
 	}
 
 	bugID, err := primitive.ObjectIDFromHex(ctx.Param("id"))
-	if err != nil {
+	if err != nil || bugID.IsZero() {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid bug ID"})
 		return
 	}
@@ -111,7 +111,12 @@ func (c *BugController) AssignBug(ctx *gin.Context) {
 
 	bug, err := c.bugUseCase.AssignBug(ctx, bugID, req.DeveloperID)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to assign bug"})
+		switch err {
+		case usecase.ErrBugNotFound:
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "Bug not found"})
+		default:
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to assign bug"})
+		}
 		return
 	}
 

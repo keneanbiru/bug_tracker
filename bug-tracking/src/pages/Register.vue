@@ -108,6 +108,13 @@ const handleRegister = async () => {
       throw new Error('Please select a valid role')
     }
 
+    console.log('Sending registration request with data:', {
+      name: name.value,
+      email: email.value,
+      password: password.value,
+      role: role.value
+    });
+
     const result = await authStore.register({
       name: name.value,
       email: email.value,
@@ -115,10 +122,13 @@ const handleRegister = async () => {
       role: role.value
     })
 
+    console.log('Registration result:', result);
+
     if (result.success) {
       router.push('/login')
     } else {
       error.value = result.error || 'Registration failed. Please try again.'
+      console.error('Registration failed:', result.error);
     }
   } catch (err) {
     error.value = err.message || 'An unexpected error occurred. Please try again.'

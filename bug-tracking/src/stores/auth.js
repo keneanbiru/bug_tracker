@@ -1,4 +1,6 @@
 import { defineStore } from "pinia";
+import api from '../services/api';
+import { useRouter } from 'vue-router';
 
 export const useAuthStore = defineStore("auth", {
   state: () => {
@@ -30,20 +32,14 @@ export const useAuthStore = defineStore("auth", {
   actions: {
     async login(credentials) {
       try {
-        // TODO: Replace with actual API call
-        const response = await fetch("http://localhost:8080/api/auth/login", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(credentials),
-        });
-
-        if (!response.ok) {
-          throw new Error("Login failed");
-        }
-
-        const data = await response.json();
+        console.log('Attempting login with credentials:', credentials);
+        console.log('API URL:', api.defaults.baseURL);
+        
+        const response = await api.post("/auth/login", credentials);
+        console.log('Login response:', response.data);
+        
+        const data = response.data;
+        
         this.token = data.token;
         this.user = data.user;
         this.role = data.user.role;
@@ -55,56 +51,75 @@ export const useAuthStore = defineStore("auth", {
 
         return true;
       } catch (error) {
-        console.error("Login error:", error);
+        console.error("Login error details:", {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+          config: {
+            url: error.config?.url,
+            method: error.config?.method,
+            headers: error.config?.headers,
+            data: error.config?.data
+          }
+        });
+        
+        if (error.response?.status === 401) {
+          window.alert('Invalid email or password');
+        } else if (error.response?.status === 0) {
+          window.alert('Unable to connect to the server. Please check if the server is running.');
+        } else {
+          window.alert(error.response?.data?.message || 'Login failed. Please try again.');
+        }
         return false;
       }
     },
 
     async register(userData) {
       try {
-        console.log("Attempting registration with:", userData);
-        const response = await fetch(
-          "http://localhost:8080/api/auth/register",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Accept": "application/json"
-            },
-            body: JSON.stringify(userData),
-          }
-        );
-
-        console.log("Registration response status:", response.status);
-        const responseText = await response.text();
-        console.log("Registration response body:", responseText);
-
-        if (!response.ok) {
-          let errorMessage = "Registration failed";
-          try {
-            const errorData = JSON.parse(responseText);
-            errorMessage = errorData.message || errorData.error || errorMessage;
-          } catch (e) {
-            console.error("Error parsing error response:", e);
-          }
-          throw new Error(errorMessage);
-        }
-
-        const data = JSON.parse(responseText);
-        console.log("Registration successful:", data);
+        console.log('Attempting registration with data:', userData);
+        console.log('API URL:', api.defaults.baseURL);
+        
+        const response = await api.post("/auth/register", userData);
+        console.log('Registration response:', response.data);
+        
+        const data = response.data;
         return { success: true, data };
       } catch (error) {
-        console.error("Registration error:", error);
-        return { success: false, error: error.message };
+        console.error("Registration error details:", {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+          config: {
+            url: error.config?.url,
+            method: error.config?.method,
+            headers: error.config?.headers,
+            data: error.config?.data
+          }
+        });
+        
+        if (error.response?.status === 409) {
+          return { success: false, error: 'Email already exists' };
+        } else if (error.response?.status === 0) {
+          return { success: false, error: 'Unable to connect to the server. Please check if the server is running.' };
+        } else if (error.response?.status === 400) {
+          return { success: false, error: error.response.data.message || 'Invalid registration data' };
+        } else {
+          return { success: false, error: error.response?.data?.message || 'Registration failed. Please try again.' };
+        }
       }
     },
 
-    logout() {
+    async logout() {
       this.user = null;
       this.token = null;
       this.role = null;
       localStorage.removeItem("token");
       localStorage.removeItem("role");
+      localStorage.removeItem("user");
+      
+      // Use router for navigation
+      const router = useRouter();
+      await router.push('/login');
     }
   },
 });
