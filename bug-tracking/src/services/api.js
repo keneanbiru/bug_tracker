@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { useRouter } from 'vue-router';
 
 // Get the base URL from environment or use default
 const getBaseURL = () => {
@@ -12,8 +11,10 @@ const getBaseURL = () => {
 const api = axios.create({
     baseURL: getBaseURL(),
     headers: {
-        'Content-Type': 'application/json'
-    }
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    },
+    withCredentials: false // Set to false for cross-origin requests
 });
 
 // Add request interceptor to add auth token
@@ -22,6 +23,11 @@ api.interceptors.request.use(config => {
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
+    // Log request for debugging
+    console.log('Making request to:', `${config.baseURL}${config.url}`, {
+        method: config.method,
+        headers: config.headers
+    });
     return config;
 }, error => {
     console.error('Request error:', error);
@@ -30,15 +36,25 @@ api.interceptors.request.use(config => {
 
 // Add response interceptor for better error handling
 api.interceptors.response.use(
-    response => response,
+    response => {
+        // Log successful response for debugging
+        console.log('Response received:', {
+            url: response.config.url,
+            status: response.status,
+            data: response.data
+        });
+        return response;
+    },
     error => {
+        // Log detailed error information
         console.error('API Error:', {
             url: error.config?.url,
             method: error.config?.method,
             status: error.response?.status,
             data: error.response?.data,
             message: error.message,
-            requestData: error.config?.data
+            requestData: error.config?.data,
+            headers: error.config?.headers
         });
 
         // Handle authentication errors
@@ -49,8 +65,7 @@ api.interceptors.response.use(
             localStorage.removeItem('user');
             
             // Redirect to login
-            const router = useRouter();
-            router.push('/login');
+            window.location.href = '/login';
         }
 
         return Promise.reject(error);
