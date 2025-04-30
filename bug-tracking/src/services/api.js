@@ -8,9 +8,9 @@ const getBaseURL = () => {
     }
     try {
         // @ts-ignore
-        return window.__VITE_API_URL__ || 'http://localhost:8080/api';
+        return window.__VITE_API_URL__ || 'https://bug-tracker-3.onrender.com/api';
     } catch {
-        return 'http://localhost:8080/api';
+        return 'https://bug-tracker-3.onrender.com/api';
     }
 };
 
