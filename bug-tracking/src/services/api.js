@@ -3,15 +3,10 @@ import { useRouter } from 'vue-router';
 
 // Get the base URL from environment or use default
 const getBaseURL = () => {
-    if (process.env.NODE_ENV === 'test') {
+    if (import.meta.env.MODE === 'test') {
         return 'http://localhost:8080/api';
     }
-    try {
-        // @ts-ignore
-        return window.__VITE_API_URL__ || 'https://bug-tracker-4.onrender.com/api';
-    } catch {
-        return 'https://bug-tracker-4.onrender.com/api';
-    }
+    return 'https://bug-tracker-5.onrender.com/api';
 };
 
 const api = axios.create({
