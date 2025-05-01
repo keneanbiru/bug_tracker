@@ -5,7 +5,7 @@ const getBaseURL = () => {
     if (import.meta.env.MODE === 'test') {
         return 'http://localhost:8080/api';
     }
-    return 'https://bug-tracker-7.onrender.com/api';
+    return 'https://bug-tracker-8.onrender.com/api';
 };
 
 const api = axios.create({
