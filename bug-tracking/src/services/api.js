@@ -14,7 +14,7 @@ const api = axios.create({
         'Content-Type': 'application/json',
         'Accept': 'application/json'
     },
-    withCredentials: false // Set to false for cross-origin requests
+    withCredentials: false // Disable credentials for cross-origin requests since we're using token-based auth
 });
 
 // Add request interceptor to add auth token
@@ -26,7 +26,8 @@ api.interceptors.request.use(config => {
     // Log request for debugging
     console.log('Making request to:', `${config.baseURL}${config.url}`, {
         method: config.method,
-        headers: config.headers
+        headers: config.headers,
+        data: config.data
     });
     return config;
 }, error => {
@@ -41,7 +42,8 @@ api.interceptors.response.use(
         console.log('Response received:', {
             url: response.config.url,
             status: response.status,
-            data: response.data
+            data: response.data,
+            headers: response.headers
         });
         return response;
     },
@@ -54,7 +56,8 @@ api.interceptors.response.use(
             data: error.response?.data,
             message: error.message,
             requestData: error.config?.data,
-            headers: error.config?.headers
+            headers: error.config?.headers,
+            responseHeaders: error.response?.headers
         });
 
         // Handle authentication errors

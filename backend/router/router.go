@@ -3,6 +3,7 @@ package router
 import (
 	"bug-tracker/controller"
 	"bug-tracker/usecase"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,11 +27,37 @@ func (r *Router) Setup() *gin.Engine {
 
 	// CORS middleware
 	router.Use(func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		c.Writer.Header().Set("Access-Control-Allow-Credentials", "false")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, PATCH, DELETE")
+		origin := c.Request.Header.Get("Origin")
+		// Allow requests from these origins
+		allowedOrigins := []string{
+			"https://bug-tracker-frontend.vercel.app",
+			"https://bug-tracker-frontend-kenean-r.vercel.app", // Deployed frontend URL
+			"http://localhost:5174",                            // Local development ports
+			"http://localhost:5173",
+			"http://localhost:3000",
+		}
 
+		// Check if the origin is allowed
+		allowed := false
+		for _, allowedOrigin := range allowedOrigins {
+			if origin == allowedOrigin {
+				allowed = true
+				c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+				break
+			}
+		}
+
+		// If no allowed origin matches, allow any origin in development
+		if !allowed && (os.Getenv("GIN_MODE") != "release") {
+			c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+		}
+
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "false")
+
+		// Handle preflight requests
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(204)
 			return
