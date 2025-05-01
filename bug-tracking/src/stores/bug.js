@@ -10,10 +10,10 @@ export const useBugStore = defineStore('bug', {
     }),
 
     getters: {
-        inProgressBugs: (state) => state.bugs.filter(bug => bug.status === 'IN_PROGRESS'),
-        resolvedBugs: (state) => state.bugs.filter(bug => bug.status === 'RESOLVED'),
-        openBugs: (state) => state.bugs.filter(bug => bug.status === 'OPEN'),
-        closedBugs: (state) => state.bugs.filter(bug => bug.status === 'CLOSED')
+        inProgressBugs: (state) => state.bugs.filter(bug => bug.status === 'in-progress'),
+        resolvedBugs: (state) => state.bugs.filter(bug => bug.status === 'resolved'),
+        openBugs: (state) => state.bugs.filter(bug => bug.status === 'open'),
+        closedBugs: (state) => state.bugs.filter(bug => bug.status === 'closed')
     },
 
     actions: {
@@ -93,8 +93,14 @@ export const useBugStore = defineStore('bug', {
             this.loading = true;
             this.error = null;
             try {
-                console.log('Updating bug status:', { bugId, status });
-                const response = await api.patch(`/bugs/${bugId}/status`, { status });
+                // Convert status to match backend format
+                const backendStatus = status.toLowerCase();
+                if (!['open', 'in-progress', 'resolved'].includes(backendStatus)) {
+                    throw new Error('Invalid status. Must be one of: open, in-progress, resolved');
+                }
+
+                console.log('Updating bug status:', { bugId, status: backendStatus });
+                const response = await api.patch(`/bugs/${bugId}/status`, { status: backendStatus });
                 console.log('Status update response:', response.data);
                 
                 // Update the bug in the list
@@ -122,7 +128,7 @@ export const useBugStore = defineStore('bug', {
             this.error = null;
             try {
                 console.log('Assigning bug:', { bugId, developerId });
-                const response = await api.post(`/bugs/${bugId}/assign`, { developerId });
+                const response = await api.post(`/bugs/${bugId}/assign`, { developer_id: developerId });
                 console.log('Bug assignment response:', response.data);
                 
                 // Update the bug in the list
