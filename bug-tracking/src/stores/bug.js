@@ -149,6 +149,59 @@ export const useBugStore = defineStore('bug', {
             } finally {
                 this.loading = false;
             }
+        },
+
+        async deleteBug(bugId) {
+            this.loading = true;
+            this.error = null;
+            try {
+                console.log('Deleting bug:', bugId);
+                await api.delete(`/bugs/${bugId}`);
+                console.log('Bug deleted successfully');
+                
+                // Remove the bug from the list
+                this.bugs = this.bugs.filter(bug => bug.id !== bugId);
+                
+                return true;
+            } catch (error) {
+                console.error('Error deleting bug:', {
+                    message: error.message,
+                    response: error.response?.data,
+                    status: error.response?.status
+                });
+                this.error = error.response?.data?.message || 'Failed to delete bug';
+                throw error;
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async reassignBug(bugId, newDeveloperId) {
+            this.loading = true;
+            this.error = null;
+            try {
+                console.log('Reassigning bug:', { bugId, newDeveloperId });
+                const response = await api.post(`/bugs/${bugId}/assign`, { developer_id: newDeveloperId });
+                console.log('Bug reassignment response:', response.data);
+                
+                // Update the bug in the list
+                const index = this.bugs.findIndex(bug => bug.id === bugId);
+                if (index !== -1) {
+                    this.bugs[index] = { ...this.bugs[index], assigned_to: response.data.assigned_to };
+                }
+                
+                return response.data;
+            } catch (error) {
+                console.error('Error reassigning bug:', {
+                    message: error.message,
+                    response: error.response?.data,
+                    status: error.response?.status
+                });
+                this.error = error.response?.data?.message || 'Failed to reassign bug';
+                throw error;
+            } finally {
+                this.loading = false;
+            }
         }
     }
 }); 

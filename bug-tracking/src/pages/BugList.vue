@@ -144,7 +144,7 @@
                 <button
                   v-if="authStore.canAssignBugs && !bug.assigned_to"
                   @click="assignBug(bug.id)"
-                  class="btn btn-primary"
+                  class="btn btn-primary btn-sm"
                   data-testid="assign-button"
                 >
                   Assign
@@ -157,6 +157,12 @@
                 >
                   Update Status
                 </button>
+                <BugActions 
+                  :bug-id="bug.id"
+                  :has-assignee="!!bug.assigned_to"
+                  @bug-deleted="handleBugDeleted"
+                  @bug-reassigned="handleBugReassigned"
+                />
               </div>
             </div>
           </div>
@@ -171,6 +177,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import { useBugStore } from '../stores/bug';
 import api from '../services/api';
+import BugActions from '../components/BugActions.vue';
 
 const authStore = useAuthStore();
 const bugStore = useBugStore();
@@ -351,6 +358,14 @@ const formatStatus = (status) => {
   };
   
   return statusMap[status] || status;
+};
+
+const handleBugDeleted = async () => {
+  await bugStore.fetchBugs(); // Refresh the bug list
+};
+
+const handleBugReassigned = async () => {
+  await bugStore.fetchBugs(); // Refresh the bug list
 };
 </script>
 
